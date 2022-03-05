@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:offer_app/classes/get_device_info.dart';
-import 'package:offer_app/provider/setting_provider.dart';
-import 'package:offer_app/server/authentication.dart';
-import 'package:offer_app/utils/info.dart';
-import 'package:offer_app/utils/validator.dart';
-import 'package:offer_app/widgets/custom_scaffold.dart';
+import 'package:friends/classes/get_device_info.dart';
+import 'package:friends/provider/setting_provider.dart';
+import 'package:friends/server/authentication.dart';
+import 'package:friends/utils/info.dart';
+import 'package:friends/utils/validator.dart';
+import 'package:friends/widgets/custom_scaffold.dart';
 import 'package:provider/provider.dart';
 
 class AuthProvider with ChangeNotifier, Validator {

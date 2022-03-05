@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:offer_app/provider/setting_provider.dart';
+import 'package:friends/provider/setting_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_s/responsive_s.dart';
 

@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localization.dart';
-import 'package:offer_app/models/theme.dart';
+import 'package:friends/models/theme.dart';
 
 class Setting{
   AppTheme theme;

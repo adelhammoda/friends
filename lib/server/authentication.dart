@@ -1,10 +1,15 @@
+import 'dart:convert';
+
 import 'package:email_auth/email_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:offer_app/provider/setting_provider.dart';
-import 'package:offer_app/utils/info.dart';
+import 'package:friends/provider/setting_provider.dart';
+import 'package:friends/utils/info.dart';
+
+import '../models/user.dart' as userModel;
+import '../classes/get_device_info.dart';
 
 class AuthenticationApi {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -53,6 +58,19 @@ class AuthenticationApi {
     await storage.write(key: 'name', value: name);
   }
 
+  Future writeUserToStorage(userModel.User user)async{
+    await storage.write(key: 'user', value:jsonEncode(user.toJSON()));
+  }
+
+  Future<userModel.User?> readUserFromStorage()async{
+    Map? userMap= jsonDecode(await storage.read(key: 'user')?? "{}");
+    if(userMap==null|| userMap.isEmpty){
+      return null;
+    }else{
+     return userModel.User.fromJSON(userMap );
+    }
+  }
+
   static String? get gitUserUid => FirebaseAuth.instance.currentUser?.uid;
 
   Stream<User?> get gitUserState => _auth.userChanges();
@@ -84,9 +102,8 @@ class AuthenticationApi {
   }
 
   Future<Map?> fetchUser(String deviceID,String email)async{
-
    Map? res= await _database.ref('users').child(decodeDeviceId(deviceID)).get().then((value) => value.value as Map?);
-
+   if(res!=null) res.addAll({'id':decodeDeviceId(deviceID)});
     return res??=await _database.ref('users').orderByChild('email').equalTo(email).once().then((value) {
        if(value.snapshot.value==null){
          return null;
@@ -95,7 +112,8 @@ class AuthenticationApi {
          if(value['email']==email){
            res={
              'email':email,
-             'name':value['name']
+             'name':value['name'],
+             'id':key
            };
            return;
          }
@@ -138,5 +156,20 @@ class AuthenticationApi {
       }
 
     }
+  }
+
+
+  Future<userModel.User?> fetchUserFromHisAccount()async{
+    User? user = _auth.currentUser;
+    userModel.User? fetchingUser;
+    String? deviceId = await DeviceInfo.getDeviceID();
+    if(user!=null && user.email!=null && deviceId!=null){
+      await fetchUser(decodeDeviceId(deviceId), user.email!).then((value) {
+        if(value != null)
+         fetchingUser = userModel.User.fromJSON(value);
+      });
+      return fetchingUser;
+    }
+    return null;
   }
 }

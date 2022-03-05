@@ -4,8 +4,9 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:offer_app/models/setting_model.dart';
-import 'package:offer_app/models/user.dart';
+import 'package:friends/models/setting_model.dart';
+import 'package:friends/models/user.dart';
+import 'package:friends/server/authentication.dart';
 
 class SettingProvider with ChangeNotifier{
  final BuildContext context;
@@ -15,14 +16,18 @@ class SettingProvider with ChangeNotifier{
    tryToLoadUser();
   }
 
+  void changeUser(User user1){
+   user=user1;
+   print(user?.id);
+   notifyListeners();
+  }
+
   void tryToLoadUser()async{
    FlutterSecureStorage s=const  FlutterSecureStorage();
-   String? uid=await s.read(key: 'uid');
-   String? dId=await s.read(key: 'deviceId');
-   String? userType=await s.read(key: 'userType');
-   String? name=await s.read(key: 'name');
-   if(uid!=null&&dId!=null&&userType!=null&&name!=null){
-    user=User(id: dId, name: name, userType: userType);
+   User? user=await AuthenticationApi().readUserFromStorage();
+
+   if(user!=null){
+    this.user=user;
    }
   }
 

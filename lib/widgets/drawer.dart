@@ -2,10 +2,10 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:offer_app/classes/navigator.dart';
-import 'package:offer_app/pages/add_edit_offer.dart';
-import 'package:offer_app/pages/setting.dart';
-import 'package:offer_app/provider/setting_provider.dart';
+import 'package:friends/classes/navigator.dart';
+import 'package:friends/pages/add_edit_offer.dart';
+import 'package:friends/pages/setting.dart';
+import 'package:friends/provider/setting_provider.dart';
 import 'package:provider/provider.dart';
 
 class CustomDrawer extends StatefulWidget {

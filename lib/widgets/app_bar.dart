@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:offer_app/models/setting_model.dart';
-import 'package:offer_app/provider/setting_provider.dart';
+import 'package:friends/models/setting_model.dart';
+import 'package:friends/provider/setting_provider.dart';
 import 'package:provider/provider.dart';
 
 PreferredSizeWidget buildAppBar(

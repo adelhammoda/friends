@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:offer_app/classes/navigator.dart';
-import 'package:offer_app/pages/create_account_page.dart';
-import 'package:offer_app/provider/auth_provider.dart';
-import 'package:offer_app/provider/setting_provider.dart';
-import 'package:offer_app/utils/info.dart';
-import 'package:offer_app/widgets/app_bar.dart';
-import 'package:offer_app/widgets/custom_scaffold.dart';
-import 'package:offer_app/widgets/text_field.dart';
+import 'package:friends/classes/navigator.dart';
+import 'package:friends/pages/create_account_page.dart';
+import 'package:friends/provider/auth_provider.dart';
+import 'package:friends/provider/setting_provider.dart';
+import 'package:friends/utils/info.dart';
+import 'package:friends/widgets/app_bar.dart';
+import 'package:friends/widgets/custom_scaffold.dart';
+import 'package:friends/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {

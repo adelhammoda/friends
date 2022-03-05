@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:offer_app/provider/setting_provider.dart';
-import 'package:offer_app/server/authentication.dart';
-import 'package:offer_app/widgets/app_bar.dart';
-import 'package:offer_app/widgets/custom_scaffold.dart';
+import 'package:friends/provider/setting_provider.dart';
+import 'package:friends/server/authentication.dart';
+import 'package:friends/widgets/app_bar.dart';
+import 'package:friends/widgets/custom_scaffold.dart';
 import 'package:provider/provider.dart';
 
 class SettingPage extends StatefulWidget {

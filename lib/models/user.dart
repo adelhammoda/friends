@@ -3,16 +3,23 @@ class User {
   final String name;
   final String userType;
   final String? imageUrl;
+  final String? phoneNumber;
+  final String? address;
+  final String email;
 
   User(
       {required this.id,
       required this.name,
+      required this.email,
       required this.userType,
-      this.imageUrl});
+      this.imageUrl,
+      this.address,
+      this.phoneNumber});
 
-  factory User.fromJSON(Map data, String id) {
+  factory User.fromJSON(Map data) {
     return User(
-        id: id,
+        id: data['id'],
+        email: data['email'],
         name: data['name'],
         userType: data['userType'],
         imageUrl: data['imageUrl']);
@@ -22,7 +29,11 @@ class User {
     return {
       'name': name,
       'userType': userType,
-      'imageUrl':imageUrl
+      'imageUrl': imageUrl,
+      "id": id,
+      'address':address,
+      'email':email,
+
     };
   }
 }

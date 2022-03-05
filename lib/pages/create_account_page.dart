@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:lottie/lottie.dart';
-import 'package:offer_app/classes/navigator.dart';
-import 'package:offer_app/models/user.dart';
-import 'package:offer_app/provider/auth_provider.dart';
-import 'package:offer_app/provider/setting_provider.dart';
-import 'package:offer_app/utils/info.dart';
-import 'package:offer_app/widgets/app_bar.dart';
-import 'package:offer_app/widgets/custom_scaffold.dart';
-import 'package:offer_app/widgets/drop_down_menu.dart';
-import 'package:offer_app/widgets/text_field.dart';
+import 'package:friends/classes/navigator.dart';
+import 'package:friends/models/user.dart';
+import 'package:friends/provider/auth_provider.dart';
+import 'package:friends/provider/setting_provider.dart';
+import 'package:friends/utils/info.dart';
+import 'package:friends/widgets/app_bar.dart';
+import 'package:friends/widgets/custom_scaffold.dart';
+import 'package:friends/widgets/drop_down_menu.dart';
+import 'package:friends/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_s/responsive_s.dart';
 
@@ -69,92 +69,100 @@ class _CreateAccountState extends State<CreateAccount> {
                 AnimatedCrossFade(
                   secondChild: Form(
                     key: _otbKey,
-                    child: Column(
-                      children: [
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              _settingProvider
-                                      .setting.appLocalization?.weSendOTb ??
-                                  "We send otb to this email",
-                              style: TextStyle(
-                                color: _settingProvider
-                                    .setting.theme.bodyTextColor,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            Text(_email,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _settingProvider
-                                      .setting.theme.appBarColor,
-                                  fontSize: 14,
-                                ))
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        CustomTextField(
-                          hintText: 'Enter OTB',
-                          validator: (otpValue) {
-                            if (otpValue != null) {
-                              return _provider.verifyOTP(
-                                  context, _email, otpValue,_settingProvider);
-                            } else {
-                              return _settingProvider.setting.appLocalization
-                                      ?.thisFieldIsRequired ??
-                                  "This field is required";
-                            }
-                          },
-                          onChanged: (value) {
-                            if (value != null) {
-                              _otp = value;
-                            }
-                          },
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            if (!_provider.isLoading) {
-                              _provider.switchLoading(false);
-                              setState(() {
-                                _next = true;
-                                _crossFadeState = CrossFadeState.showFirst;
-                              });
-                            }
-                          },
-                          child: Row(
+                    child: SizedBox(
+                      width: _responsive.responsiveWidth(forUnInitialDevices: 100),
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(
-                                _settingProvider
-                                        .setting.appLocalization?.edit ??
-                                    "Edit",
-                                style: TextStyle(
+                              Container(
+                                width: _responsive.responsiveWidth(forUnInitialDevices: 100),
+                                padding: EdgeInsets.all(10),
+                                child: Text(
+                                  _settingProvider
+                                          .setting.appLocalization?.weSendOTb ??
+                                      "We send otb to this email",
+                                  style: TextStyle(
                                     color: _settingProvider
-                                        .setting.theme.appBarColor,
-                                    fontSize: 14),
+                                        .setting.theme.bodyTextColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
                               const SizedBox(
-                                width: 5,
+                                width: 10,
                               ),
-                              Icon(
-                                Icons.backspace,
-                                color: _settingProvider
-                                    .setting.theme.textFieldColor,
-                              ),
+                              Text(_email,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: _settingProvider
+                                        .setting.theme.appBarColor,
+                                    fontSize: 14,
+                                  ))
                             ],
                           ),
-                        )
-                      ],
+                          const SizedBox(
+                            height: 15,
+                          ),
+                          CustomTextField(
+                            hintText: 'Enter OTB',
+                            validator: (otpValue) {
+                              if (otpValue != null) {
+                                return _provider.verifyOTP(
+                                    context, _email, otpValue,_settingProvider);
+                              } else {
+                                return _settingProvider.setting.appLocalization
+                                        ?.thisFieldIsRequired ??
+                                    "This field is required";
+                              }
+                            },
+                            onChanged: (value) {
+                              if (value != null) {
+                                _otp = value;
+                              }
+                            },
+                          ),
+                          const SizedBox(
+                            height: 2,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              if (!_provider.isLoading) {
+                                _provider.switchLoading(false);
+                                setState(() {
+                                  _next = true;
+                                  _crossFadeState = CrossFadeState.showFirst;
+                                });
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Text(
+                                  _settingProvider
+                                          .setting.appLocalization?.edit ??
+                                      "Edit",
+                                  style: TextStyle(
+                                      color: _settingProvider
+                                          .setting.theme.appBarColor,
+                                      fontSize: 14),
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
+                                Icon(
+                                  Icons.backspace,
+                                  color: _settingProvider
+                                      .setting.theme.textFieldColor,
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
                   duration: const Duration(milliseconds: 400),
@@ -305,6 +313,7 @@ class _CreateAccountState extends State<CreateAccount> {
                               String? dId=await s.read(key: 'deviceID');
                               if(uid!=null&&dId!=null) {
                                 _settingProvider.user=User(
+                                  email: _email,
                                  name: _name,
                                  id: dId,
                                  userType: _provider.userType,

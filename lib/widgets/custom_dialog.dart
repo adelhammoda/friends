@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 
 Future showCustomDialog<T extends Object>(context,
-    {required Widget child,required double width
-      ,required double height}) async {
+    {required Widget child}) async {
   T? result = await showGeneralDialog<T?>(
       context: context,
       useRootNavigator: true,
@@ -18,22 +17,20 @@ Future showCustomDialog<T extends Object>(context,
         );
       },
       pageBuilder: (context, animation, animation1) =>
-          Padding(
-            padding:  EdgeInsets.only(
-              left:width/2,
-              right: width/2,
-              top: height/2,
-              bottom: height/2
-            ),
-            child: StatefulBuilder(
-              builder:(c,reBuild)=> Material(
-                type: MaterialType.canvas,
-                clipBehavior: Clip.hardEdge,
-                animationDuration: const Duration(milliseconds: 500),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
-                child: child,
-              ),
+          StatefulBuilder(
+            builder:(c,reBuild)=> Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Material(
+                  type: MaterialType.canvas,
+                  clipBehavior: Clip.hardEdge,
+                  animationDuration: const Duration(milliseconds: 500),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
+                  child: child,
+                ),
+              ],
             ),
           ));
   return result;

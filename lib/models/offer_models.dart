@@ -1,33 +1,35 @@
 class Offer {
-  final String id, imageUrl, name, offerOwnerId, description;
+  final String id, name, offerOwnerId, description;
   final double value;
   final Map info;
   final DateTime date;
-  final double? totalCapacity;
+  final int? totalCapacity;
+  final List images;
 
   Offer({
     required this.id,
-    required this.imageUrl,
+    required this.images,
     required this.name,
     required this.offerOwnerId,
     required this.description,
     required this.date,
     required this.info,
     required this.value,
-     this.totalCapacity,
+    this.totalCapacity,
   });
 
   factory Offer.fromJSON(Map data) {
+    print('I am in from JSON and the result is $data');
     return Offer(
-        id: data['id'],
-        imageUrl: data['imageUrl'],
-        name: data['name'],
-        offerOwnerId: data['offerOwnerId'],
+        id: data['id'].toString(),
+        images: data['images'],
+        name: data['offerName'],
+        offerOwnerId: data['offerOwnerId'].toString(),
         description: data['description'],
         date: stringToDate(data['date']),
-        info: data['info'],
-        value: data['value'],
-    totalCapacity: data['totalCapacity']);
+        info: data['info']??{},
+        value: int.tryParse(data['offerValue'].toString())?.toDouble()??0.0,
+        totalCapacity: int.tryParse(data['totalCapacity'].toString())??0);
   }
 
   String dateToDataBaseString() => date.toIso8601String();
@@ -36,13 +38,21 @@ class Offer {
 
   Map<String, dynamic> toJSON() {
     return {
-      'imageUrl': imageUrl,
-      'name': name,
+      'images': images,
+      'offerName': name,
       'offerOwnerId': offerOwnerId,
       'description': description,
       'date': dateToDataBaseString(),
       'info': info,
-      'value': value,
+      'offerValue': value,
     };
+  }
+
+  static Map fromList(List<Map> data){
+    Map res={ };
+     data.forEach((element) {
+       res.addAll({element.keys.first:element.values.first});
+     });
+     return res;
   }
 }
