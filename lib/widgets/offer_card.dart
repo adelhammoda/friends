@@ -86,7 +86,12 @@ class _OfferCardState extends State<OfferCard> {
             ),
             Align(
               alignment: Alignment.topRight,
-              child: Column(
+              child:widget.offer.totalCapacity==0||widget.offer.totalCapacity==null?Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text('Un limited',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: _setting.setting.theme.iconsColor))): Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(

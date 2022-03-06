@@ -3,23 +3,25 @@ class User {
   final String name;
   final String userType;
   final String? imageUrl;
-  final String? phoneNumber;
+  final String phoneNumber;
   final String? address;
   final String email;
 
-  User(
-      {required this.id,
-      required this.name,
-      required this.email,
-      required this.userType,
-      this.imageUrl,
-      this.address,
-      this.phoneNumber});
+  User({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.userType,
+    required this.phoneNumber,
+    this.imageUrl,
+    this.address,
+  });
 
   factory User.fromJSON(Map data) {
     return User(
         id: data['id'],
         email: data['email'],
+        phoneNumber: data['phone_number'],
         name: data['name'],
         userType: data['userType'],
         imageUrl: data['imageUrl']);
@@ -27,13 +29,13 @@ class User {
 
   Map<String, dynamic> toJSON() {
     return {
+      'phone_number':phoneNumber,
       'name': name,
       'userType': userType,
       'imageUrl': imageUrl,
       "id": id,
-      'address':address,
-      'email':email,
-
+      'address': address,
+      'email': email,
     };
   }
 }

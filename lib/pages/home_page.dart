@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:friends/models/user.dart';
+import 'package:friends/pages/scan_qr_code.dart';
+import 'package:friends/pages/subscripe_page.dart';
 import 'package:friends/server/authentication.dart';
 import 'package:lottie/lottie.dart';
 import 'package:friends/classes/navigator.dart';
@@ -29,6 +31,7 @@ class _HomePageState extends State<HomePage>
   final PageController _pageController = PageController(
     initialPage: 0,
   );
+  int currentPage=0;
   late final Animation<double> _pageAnimation;
   late final AnimationController _pageAnimationController;
 
@@ -55,20 +58,14 @@ class _HomePageState extends State<HomePage>
               curve: Curves.easeIn);
           break;
         }
+      case 3:
+        _pageController.animateToPage(3,
+            duration: Duration(milliseconds: 400), curve: Curves.easeIn);
     }
   }
 
 
-  void _tryToFetchUser()async{
-    if(_setting.user==null) {
-      User? user = await AuthenticationApi().fetchUserFromHisAccount();
-      print("User result is use ${user?.id}");
-      if (user != null) {
-        _setting.changeUser(user);
-        await AuthenticationApi().writeUserToStorage(user);
-      }
-    }
-  }
+
   @override
   void initState() {
     super.initState();
@@ -76,20 +73,32 @@ class _HomePageState extends State<HomePage>
         vsync: this, duration: const Duration(milliseconds: 400));
     _pageAnimation = Tween(end: 1.0, begin: 0.0).animate(CurvedAnimation(
         parent: _pageAnimationController, curve: Curves.easeInBack));
-
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _setting.tryToLoadUser();
-    _tryToFetchUser();
+
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
+      appBar: buildAppBar(context,
+          title: _setting.setting.appLocalization?.offers ?? "Offers",
+          actions: [
+            //TODO:change this icon to setting icon
+            IconButton(
+              onPressed: () {
+                Go.to(context, const SettingPage(),
+                    behavior: NavigatorBehavior.downToTop);
+              },
+              icon: Lottie.asset('assets/lottie/setting.json'),
+            )
+          ]),
       navigationBar: SnakeNavigationBar.color(
+        currentIndex: currentPage,
         behaviour: SnakeBarBehaviour.floating,
         padding: const EdgeInsets.all(10),
         snakeShape: SnakeShape.circle,
@@ -102,39 +111,44 @@ class _HomePageState extends State<HomePage>
             width: _responsive.responsiveWidth(forUnInitialDevices: 7),
           )),
           BottomNavigationBarItem(
-              icon: Image.asset(
-            'assets/icons/qr-code.png',
-            width: _responsive.responsiveWidth(forUnInitialDevices: 7),
+              icon: Lottie.asset(
+            'assets/lottie/addOffer.json',
+            animate: true,
           )),
           BottomNavigationBarItem(
               icon: Lottie.asset(
-            'assets/lottie/addOffer.json',
-            animate: false,
+            'assets/lottie/price.json',
+            animate: true,
           )),
-          // BottomNavigationBarItem(icon: )
+          BottomNavigationBarItem(
+              icon: Image.asset(
+            'assets/icons/qr.png',
+            width: _responsive.responsiveWidth(forUnInitialDevices: 7),
+          )),
+          BottomNavigationBarItem(
+              icon: Image.asset(
+                'assets/icons/scan_qr.png',
+                width: _responsive.responsiveWidth(forUnInitialDevices: 7),
+              )),
+
         ],
       ),
       controller: _controller,
       // prefixWidget: Lottie.asset('assets/lottie/38213-error.json'),
-      appBar: buildAppBar(context,
-          title: _setting.setting.appLocalization?.offers ?? "Offers",
-          actions: [
-            //TODO:change this icon to setting icon
-            IconButton(
-              onPressed: () {
-                Go.to(context, const SettingPage(),
-                    behavior: NavigatorBehavior.downToTop);
-              },
-              icon: const Icon(Icons.reset_tv),
-            )
-          ]),
       child: PageView(
+        onPageChanged: (index){
+          setState(() {
+            currentPage=index;
+          });
+        },
         controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+        // physics: const NeverScrollableScrollPhysics(),
         children: const [
           OfferPage(),
-          QrCode(),
           AddEditOffer(),
+          SubscribePage(),
+          QrCode(),
+          ScanQRCode(),
         ],
       ),
     );

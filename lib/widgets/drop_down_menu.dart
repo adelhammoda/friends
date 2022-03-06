@@ -91,6 +91,7 @@ class _CustomDropDownMenuState extends State<CustomDropDownMenu>
                   ),
                   InkWell(
                       onTap: () {
+                        FocusScope.of(context).unfocus();
                         setState(() {
                           _height = _height == _containerHeight
                               ? _columnHeight
@@ -99,6 +100,7 @@ class _CustomDropDownMenuState extends State<CustomDropDownMenu>
                         _controller.isCompleted
                             ? _controller.reverse()
                             : _controller.forward();
+
                       },
                       child: AnimatedIcon(
                         icon: AnimatedIcons.menu_close,

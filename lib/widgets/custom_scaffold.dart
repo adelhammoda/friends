@@ -17,7 +17,8 @@ class CustomScaffold extends StatefulWidget {
     Key? key,
     required this.child,
     required this.controller,
-    this.floatingActionButtonLocation=FloatingActionButtonLocation.miniEndDocked,
+    this.floatingActionButtonLocation =
+        FloatingActionButtonLocation.miniEndDocked,
     this.floatingActionButton,
     this.navigationBar,
     this.appBar,
@@ -40,11 +41,11 @@ class _CustomScaffoldState extends State<CustomScaffold>
   }
 
   void _triggerMSG(String msg) {
-    if(!_controller.isAnimating) {
+    if (!_controller.isAnimating) {
       _controller.forward();
       Timer(const Duration(seconds: 2), () {
         _controller.reverse();
-        widget.controller.showError('');
+        widget.controller.showMSG('');
       });
     }
   }
@@ -62,10 +63,10 @@ class _CustomScaffoldState extends State<CustomScaffold>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
-      floatingActionButton: widget.floatingActionButton,
-      floatingActionButtonLocation: widget.floatingActionButtonLocation,
-      bottomNavigationBar: widget.navigationBar,
+        resizeToAvoidBottomInset: true,
+        floatingActionButton: widget.floatingActionButton,
+        floatingActionButtonLocation: widget.floatingActionButtonLocation,
+        bottomNavigationBar: widget.navigationBar,
         backgroundColor:
             Provider.of<SettingProvider>(context).setting.theme.primaryColor,
         appBar: widget.appBar,
@@ -87,11 +88,11 @@ class _CustomScaffoldState extends State<CustomScaffold>
                           child: Container(
                             padding: const EdgeInsets.all(10),
                             constraints: BoxConstraints(
-                              minHeight: _responsive.responsiveHeight(
-                                  forUnInitialDevices: 15),
-                              minWidth: _responsive.responsiveWidth(
-                                  forUnInitialDevices: 95),
-                            ),
+                                // minHeight: _responsive.responsiveHeight(
+                                //     forUnInitialDevices: 15),
+                                // minWidth: _responsive.responsiveWidth(
+                                //     forUnInitialDevices: 95),
+                                ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
                               color: Colors.white,
@@ -110,9 +111,11 @@ class _CustomScaffoldState extends State<CustomScaffold>
                                                 forUnInitialDevices: 10),
                                             height: _responsive.responsiveWidth(
                                                 forUnInitialDevices: 10),
-                                            child:widget.controller.prefixWidget),
+                                            child:
+                                                widget.controller.prefixWidget),
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
@@ -120,17 +123,21 @@ class _CustomScaffoldState extends State<CustomScaffold>
                                         Text(
                                           widget.controller.message,
                                           style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.red,
-                                            fontWeight: FontWeight.bold
-                                          ),
+                                              fontSize: 16,
+                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold),
                                         ),
-                                        Text(value,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Provider.of<SettingProvider>(context).setting.theme.appBarColor,
-
-                                        ),)
+                                        Text(
+                                          value,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Provider.of<SettingProvider>(
+                                                    context)
+                                                .setting
+                                                .theme
+                                                .appBarColor,
+                                          ),
+                                        )
                                       ],
                                     ),
                                   ],
@@ -150,15 +157,26 @@ class _CustomScaffoldState extends State<CustomScaffold>
 
 class CustomScaffoldController with ChangeNotifier {
   final ValueNotifier<String> valueListenable = ValueNotifier('');
-   String message='Error';
-   Widget? prefixWidget;
-   Duration duration=const Duration(milliseconds: 400);
+  String message = 'Error';
+  Widget? prefixWidget;
+  Duration duration = const Duration(milliseconds: 400);
+  double widthPercentage = 95;
+  double heightPercentage = 15;
 
-  void showError(String e,{String title='Error',Widget? prefix,Duration duration=const Duration(milliseconds: 400)}) {
-    message=title;
-    prefixWidget=prefix;
-    this.duration=duration;
-    valueListenable.value = e;
+  void showMSG(
+    String msg, {
+    String title = 'Error',
+    Widget? prefix,
+    Duration duration = const Duration(milliseconds: 400),
+    double widthPercentage = 15,
+    double heightPercentage = 95,
+  }) {
+    message = title;
+    this.widthPercentage = widthPercentage;
+    this.heightPercentage = heightPercentage;
+    prefixWidget = prefix;
+    this.duration = duration;
+    valueListenable.value = msg;
     valueListenable.notifyListeners();
   }
 }

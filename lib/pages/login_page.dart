@@ -11,7 +11,8 @@ import 'package:friends/widgets/text_field.dart';
 import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final bool unVerified;
+  const LoginPage({Key? key,required this.unVerified}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -85,9 +86,7 @@ class _LoginPageState extends State<LoginPage>
                 const SizedBox(
                   height: 20,
                 ),
-
                 ValueListenableBuilder<bool>(
-
                   valueListenable: _hidePassword,
                   builder:(context,value,child)=> CustomTextField(
                     controller: _passwordController,
@@ -98,7 +97,7 @@ class _LoginPageState extends State<LoginPage>
                         _hidePassword.value=!_hidePassword.value;
                       },
                       child: Icon(
-                        value? Icons.panorama_fish_eye:Icons.remove_red_eye,
+                        value? Icons.visibility_off_sharp:Icons.remove_red_eye,
                         color: _settingProvider.setting.theme.bodyTextColor,
                       ),
                     ),
@@ -113,7 +112,6 @@ class _LoginPageState extends State<LoginPage>
                     },
                   ),
                 ),
-
                 Row(
                   children: [
                     Checkbox(
@@ -137,8 +135,8 @@ class _LoginPageState extends State<LoginPage>
 
                         onPressed: (){
                           buildInfo(context);
-                          Go.to(context,ChangeNotifierProvider.value(
-                              value:_provider,
+                          Go.to(context,ChangeNotifierProvider(
+                              create:(c)=>AuthProvider(),
                               child: const CreateAccount()));
                         },
                         child: Text((_settingProvider
@@ -164,7 +162,7 @@ class _LoginPageState extends State<LoginPage>
                       onPressed: () async{
                         _loading.value=true;
                         if(_formKey.currentState?.validate()??false) {
-                          await _provider.login(_email, _password,_controller,_settingProvider);
+                          // await _provider.login(_email, _password,_controller,_settingProvider);
                           _loading.value=false;
                         }
                         _loading.value=false;

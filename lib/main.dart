@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:friends/models/user.dart';
 import 'package:friends/pages/error_page.dart';
 import 'package:friends/pages/home_page.dart';
 import 'package:friends/pages/login_page.dart';
@@ -9,12 +11,14 @@ import 'package:friends/provider/auth_provider.dart';
 import 'package:friends/provider/setting_provider.dart';
 import 'package:friends/server/authentication.dart';
 import 'package:friends/utils/l10n/l10n.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_gen/gen_l10n/app_localization.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseDatabase.instance.setPersistenceEnabled(true);
   runApp(ChangeNotifierProvider(
       create: (context) => SettingProvider(context), child: const MyApp()));
 
@@ -46,16 +50,16 @@ class MyApp extends StatelessWidget {
             .theme
             .createMaterialColor(),
       ),
-      home: StreamBuilder(
+      home: StreamBuilder<auth.User?>(
           stream: AuthenticationApi().gitUserState,
           builder: (context, snapshot) {
-            if (snapshot.data == null) {
+            if (snapshot.data == null|| !AuthenticationApi.isUserVerified) {
               return ChangeNotifierProvider(
                   create: (context) => AuthProvider(),
-                  child: const LoginPage());
+                  child:  LoginPage(unVerified: AuthenticationApi.isUserVerified,));
             } else if (snapshot.connectionState == ConnectionState.waiting) {
               return const WaitingPage();
-            } else if (snapshot.data != null) {
+            } else if (snapshot.data != null && (snapshot.data?.emailVerified??false)) {
               return const HomePage();
             } else {
               return ErrorPage(

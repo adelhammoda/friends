@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 
 Future showCustomDialog<T extends Object>(context,
-    {required Widget child}) async {
+    {required Widget child, barrierDismissible= true}) async {
   T? result = await showGeneralDialog<T?>(
       context: context,
       useRootNavigator: true,
-      barrierDismissible: true,
+      barrierDismissible: barrierDismissible,
       barrierLabel: 'j',
       transitionDuration: const Duration(milliseconds: 500),
       transitionBuilder: (context, animation, animation1, child) {

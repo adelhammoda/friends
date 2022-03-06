@@ -657,7 +657,7 @@ class _AddEditOfferState extends State<AddEditOffer>
                     builder: (context, value, child) {
                       return value
                           ?  Loader(
-                        size: _responsive.responsiveWidth(forUnInitialDevices: 60),
+                        size: _responsive.responsiveWidth(forUnInitialDevices:30),
                             )
                           : ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -672,12 +672,11 @@ class _AddEditOfferState extends State<AddEditOffer>
                                     _offerValue != -1 &&
                                     _description != '' &&
                                     _offerOwner != null &&
-                                    _offerName != '' &&
-                                    _totalCapacity != -1) {
+                                    _offerName != '' ) {
                                   FocusNode().unfocus();
-                                  complete = await showCustomDialog<bool>(
-                                      context,
-                                      child: SizedBox(
+                                  complete = await showDialog<bool>(
+                                      context:context,
+                                      builder:(c)=> SizedBox(
                                         height: _responsive.responsiveHeight(forUnInitialDevices: 80),
                                         width: _responsive.responsiveWidth(forUnInitialDevices: 90),
                                         child: Column(
@@ -823,14 +822,15 @@ class _AddEditOfferState extends State<AddEditOffer>
                                         ),
                                       ));
                                 } else {
-                                  _scaffoldController.showError(_setting
+                                  _scaffoldController.showMSG(_setting
                                           .setting
                                           .appLocalization
                                           ?.youMustFillAllField ??
                                       "You must fill all field");
                                 }
-                                FocusNode().unfocus();
-                                print(complete);
+                                FocusNode().unfocus(
+                                  disposition: UnfocusDisposition.scope
+                                );
                                 if ((complete ?? false)) {
                                   _loading.value = true;
                                   try {
@@ -854,7 +854,7 @@ class _AddEditOfferState extends State<AddEditOffer>
                                     _loading.value = false;
                                   } on Exception catch (e) {
                                     _loading.value=false;
-                                    _scaffoldController.showError("$e");
+                                    _scaffoldController.showMSG("$e");
                                   }
                                 }
                               },

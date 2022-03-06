@@ -27,6 +27,7 @@ class DataBaseApi {
       if (value.snapshot.value != null) {
         (value.snapshot.value as Map).forEach((key, value) {
           res.add(User(
+            phoneNumber: value['phone_number'],
             email: value['email'],
             name: value['name'],
             id: key,
@@ -94,7 +95,6 @@ class DataBaseApi {
           res.add(Offer.fromJSON(data));
         });
         print("i am in if and res is $res");
-
       }
       print(res);
       return  res;

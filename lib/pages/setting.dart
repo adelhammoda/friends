@@ -42,7 +42,7 @@ class _SettingPageState extends State<SettingPage> {
               title: Text(_setting.setting.appLocalization?.deleteAccount??"Delete Account") ,
               onTap: ()async{
 
-                print(await AuthenticationApi().deleteAccount(_setting));
+                print(await AuthenticationApi.deleteAccount(_setting.user?.email??""));
               },
             ),
           ],
