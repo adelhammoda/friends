@@ -1,13 +1,16 @@
-import 'dart:ffi';
+import 'dart:async';
+
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'as auth;
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:friends/classes/get_device_info.dart';
+import 'package:friends/classes/navigator.dart';
+import 'package:friends/pages/home_page.dart';
 import 'package:friends/server/authentication.dart';
 import 'package:friends/widgets/custom_dialog.dart';
+import 'package:friends/widgets/loader.dart';
 import 'package:lottie/lottie.dart';
-import 'package:friends/classes/navigator.dart';
 import 'package:friends/models/user.dart';
 import 'package:friends/provider/auth_provider.dart';
 import 'package:friends/provider/setting_provider.dart';
@@ -20,7 +23,8 @@ import 'package:provider/provider.dart';
 import 'package:responsive_s/responsive_s.dart';
 
 class CreateAccount extends StatefulWidget {
-  const CreateAccount({Key? key}) : super(key: key);
+  final bool justVerify;
+  const CreateAccount({Key? key,this.justVerify = false}) : super(key: key);
 
   @override
   _CreateAccountState createState() => _CreateAccountState();
@@ -32,6 +36,7 @@ class _CreateAccountState extends State<CreateAccount> {
   late AuthProvider _provider;
   final ValueNotifier<bool> _hidePassword = ValueNotifier(true);
   final ValueNotifier<bool> _hideConfirmPassword = ValueNotifier(true);
+  final ValueNotifier<bool> _sendCodeAgain = ValueNotifier(false);
   final CustomScaffoldController _controller = CustomScaffoldController();
   final GlobalKey<FormState> _emailPasswordKey = GlobalKey();
   final GlobalKey<FormState> _otbKey = GlobalKey();
@@ -53,6 +58,20 @@ class _CreateAccountState extends State<CreateAccount> {
   @override
   void initState() {
     super.initState();
+    if(widget.justVerify){
+      _crossFadeState = CrossFadeState.showSecond;
+      emailMethod =true;
+      _sendCodeAgain.value = false;
+      _email = AuthenticationApi.user!.email!;
+
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) async{
+        ScaffoldMessenger.of(context).clearMaterialBanners();
+        _provider.switchLoading(true);
+        await _sendVerification(false).catchError((e){
+          _provider.switchLoading(false);
+        });
+        _provider.switchLoading(false);
+      });}
   }
 
   @override
@@ -61,6 +80,54 @@ class _CreateAccountState extends State<CreateAccount> {
     _settingProvider = SettingProvider(context);
     _provider = Provider.of(context);
     _responsive = Responsive(context);
+  }
+
+  Future<void> _createAccountInFirebaseAuth() async{
+    try{
+      await AuthenticationApi.createUserWithEmailAndPassword(email: _email, password: _password);
+    }on FirebaseException catch(e){
+     throw e.message??"Some error happened while connection";
+    }catch(e){
+      print(e);
+     throw 'Cant create your account at this moment';
+    }
+  }
+
+  Future<bool?> _chooseVerificationMethod()async{
+    return await showCustomDialog<bool>(context,
+        barrierDismissible: false,
+        child: Container(
+          width: _responsive.responsiveWidth(forUnInitialDevices: 80),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Choose the way to verify your account'),
+              ),
+              ListTile(
+                title: Text("use number phone"),
+                onTap: () => Navigator.of(context).pop(true),
+                subtitle: Text('$_phone_number'),
+              ),
+              ListTile(
+                title: Text("use email "),
+                onTap: () => Navigator.of(context).pop(false),
+                subtitle: Text('$_email'),
+              ),
+            ],
+          ),
+        ));
+  }
+
+
+  Future<void> _completeCreate() async {
+    User? user=await AuthenticationApi.fetchUserFromHisAccount(_email);
+    if(user!= null) throw "The user account have some problem. please contact to us to solve your issue";
+    await _createAccount();
+    _provider.switchLoading(false);
+    Go.pop(context);
+    Go.to(context, const HomePage());
   }
 
   Future<void> _createAccount() async {
@@ -81,82 +148,79 @@ class _CreateAccountState extends State<CreateAccount> {
           imageUrl: _imageUrl,
           name: _name);
       debugPrint('writing user to storage');
-      AuthenticationApi.writeUserToStorage(user);
-     await _verifyAccount();
+     await AuthenticationApi.writeUserToStorage(user);
     } catch (e) {
       debugPrint('we catch some error in _createUserFunction $e');
-      _provider.switchLoading(false);
-      _controller.showMSG(
-        "Some error happened",
-        title: "Failed",
-      );
+      throw 'we catch some error in _createUserFunction';
     }
   }
 
-  Future<void> _verifyAccount() async {
-    _provider.switchLoading(true);
-    try {
-      await AuthenticationApi.createUserWithEmailAndPassword(
-          email: _email, password: _password);
-    }  catch (e) {
-      _controller.showMSG('error happened');
-    }
-    _provider.switchLoading(false);
-    bool? choice = await showCustomDialog<bool>(context,
-        barrierDismissible: false,
-        child: Container(
-          width: _responsive.responsiveWidth(forUnInitialDevices: 80),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: Text("use number phone "),
-                onTap: () => Navigator.of(context).pop(true),
-                subtitle: Text('$_phone_number'),
-              ),
-              ListTile(
-                title: Text("use email "),
-                onTap: () => Navigator.of(context).pop(false),
-                subtitle: Text('$_email'),
-              ),
-            ],
-          ),
-        ));
-    _provider.switchLoading(true);
-    if (choice == true) {
+
+  Future<void> _sendVerification(bool? method)async{
+    if(method==true){
       //phone number auth
-    } else if (choice == false) {
-      try {
-        print('creating account');
-        try{
-          await AuthenticationApi.createUserWithEmailAndPassword(
-              email: _email, password: _password);
-        } on FirebaseException catch(e){
-          _controller.showMSG('${e.message}');
-        }catch(e){
-          print(e);
-          _controller.showMSG('cant create your account');
-        }
-
-        print('sending message');
-        bool sent = await AuthenticationApi.sendEmailVerification();
-        if (sent) {
-          print('message sent');
-          emailMethod = true;
-          setState(() {
-            _crossFadeState = CrossFadeState.showSecond;
+    }else if(method == false){
+      try{
+        bool isSent = await AuthenticationApi.sendEmailVerification();
+        if(isSent){
+          _controller.showMSG('Email send successfully',title: "Success",
+              prefix: Lottie.asset('assets/lottie/success.json'),
+              titleStyle: TextStyle(
+            fontSize: 16,
+            color: Colors.green
+          ));
+          if(_crossFadeState!=CrossFadeState.showSecond) {
+            _next = false;
+            emailMethod = true;
+            setState(() {
+              _crossFadeState = CrossFadeState.showSecond;
+            });
+          }
+          Timer(
+            const Duration(seconds: 30),
+              ()async{
+              await AuthenticationApi.reloadUser;
+              if(!AuthenticationApi.isUserVerified){
+                _sendCodeAgain.value = true;
+              }
+              }
+          );
+          Timer.periodic(const Duration(seconds: 1),(timer)async{
+            await auth.FirebaseAuth.instance.currentUser?.reload();
+           bool res= AuthenticationApi.isUserVerified;
+           if(res && !_provider.isLoading ){
+             _provider.switchLoading(true);
+             try{
+              await _completeCreate();
+             }catch(e){
+               _controller.showMSG('Cant verify your account now',
+               titleStyle: TextStyle(
+                 fontWeight: FontWeight.bold,
+                 fontSize: 16,
+                 color: Colors.red,
+               ),title: "Error",
+               duration: const Duration(milliseconds: 1500),
+               prefix: Lottie.asset('assets/lottie/error.json'));
+             }
+             _provider.switchLoading(false);
+             timer.cancel();
+             return ;
+           }
           });
-        } else {
-          _controller.showMSG('For some reason cant send email authentication');
+          return ;
+
+        }else{
+          throw FirebaseException(plugin: 'Error',message:'Error happened will sending the email' );
         }
-      } catch (e) {
-        print(e);
+      }on FirebaseException catch(e){
+        throw e.message??"cant send email verification at this time";
+      }catch(e){
+        throw "Some error happened will sending the massage";
       }
-    } else {
-      _controller.showMSG('you stopped sign in process');
     }
-    _provider.switchLoading(false);
+
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +272,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                   padding: EdgeInsets.all(10),
                                   child: Text(
                                     emailMethod
-                                        ? "We send link to your account.pleas open gmail and press on link to verify your account"
+                                        ? "We send link to your email account.pleas open gmail and press on link to verify your account"
                                         : _settingProvider.setting
                                         .appLocalization
                                         ?.weSendOTb ??
@@ -300,7 +364,27 @@ class _CreateAccountState extends State<CreateAccount> {
                                   ),
                                 ],
                               ),
-                            )
+                            ),
+                            ValueListenableBuilder<bool>(
+                                valueListenable:_sendCodeAgain ,
+                                builder: (c,value,child){
+                                  return AnimatedCrossFade(
+                                    firstChild: SizedBox(),
+                                    secondChild: child!,
+                                    duration: const Duration(milliseconds: 500),
+                                    crossFadeState: value?CrossFadeState.showSecond:CrossFadeState.showFirst,
+                                  );
+                                },
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    primary: _settingProvider.setting.theme.iconsColor
+                                  ),
+                                    onPressed:_provider.isLoading? null: ()async{
+                                  _provider.switchLoading(true);
+                                  await _sendVerification(false);
+                                  _provider.switchLoading(false);
+                                  _sendCodeAgain.value=false;
+                                }, icon: Icon(Icons.arrow_forward), label:Text( "Send email again")),)
                           ],
                         ),
                       ),
@@ -480,8 +564,8 @@ class _CreateAccountState extends State<CreateAccount> {
                     height: 10,
                   ),
                   _provider.isLoading
-                      ? CircularProgressIndicator(
-                    color: _settingProvider.setting.theme.textFieldColor,
+                      ? Loader(
+                    size: _responsive.responsiveWidth(forUnInitialDevices: 17),
                   )
                       : ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -490,38 +574,129 @@ class _CreateAccountState extends State<CreateAccount> {
                               borderRadius: BorderRadius.circular(14))),
                       onPressed: () async {
                         FocusScope.of(context).unfocus();
-                        _provider.switchLoading(true);
-                        if (_next) {
-                          debugPrint('i am in next function');
-                          print(_phone_number);
-                          await _createAccount();
-                          _provider.switchLoading(false);
-                          return;
-                        }else{
-                          if (_provider.userType == '' && _next) {
-                            _controller.showMSG(
-                                _settingProvider.setting.appLocalization
-                                    ?.youMustFillAllField ??
-                                    "You must fill all field",
-                                title: _settingProvider
-                                    .setting.appLocalization?.error ??
-                                    'Error',
-                                prefix: Lottie.asset(
-                                    'assets/lottie/38213-error.json',
-                                    animate: true));
-                            _provider.switchLoading(false);
-                          }
-                          else if ((_emailPasswordKey.currentState
-                              ?.validate() ??
-                              false) &&
-                              _next) {
-                            if(await AuthenticationApi.isUserVerified){
-                              Navigator.of(context).pop();
+                        //break the function if the data isn't validate
+                        if(!(_emailPasswordKey.currentState?.validate()??true)) return ;
+                        if(_provider.userType=='') {
+                              _controller.showMSG(
+                                'User type filed must be filled',
+                                duration: const Duration(milliseconds: 900),
+                                prefix:
+                                    Lottie.asset('assets/lottie/warning.json'),
+                                title: "Warning",
+                              );
+                              return ;
                             }
+                            print(_next);
+                        // next true its mean create account and choose verification method then send code.
+                        if(_next){
+                          try {
+                            _provider.switchLoading(true);
+                            await _createAccountInFirebaseAuth();
+                            // _provider.switchLoading(false);
+                            // bool? method = await _chooseVerificationMethod();
+                            // //throw error if the user didn't choose any way to verify
+                            // if(method==null) throw "//hint//You didn't choose any thing, so the process will stop";
+                            // _provider.switchLoading(true);
+                            // print('the method bool value is $method');
+                            await _sendVerification(false);
                             _provider.switchLoading(false);
-                          } else {
+                          }catch(e){
+                            String errorMSG;
+                            String title;
+                            Color titleColor;
+                            Widget prefix;
+                            if(e.toString().contains('//hint//')){
+                              title = 'Warning';
+                              prefix = Lottie.asset('assets/lottie/warning.json');
+                              titleColor = Colors.yellow;
+                              errorMSG=e.toString().substring(9);
+                            }else{
+                              prefix = Lottie.asset('assets/lottie/error.json');
+                              titleColor=Colors.red;
+                              title = 'Error';
+                              errorMSG=e.toString();
+                            };
+
                             _provider.switchLoading(false);
+                            _controller.showMSG(
+                                errorMSG,
+                                duration: const Duration(seconds: 2),
+                                title: title,
+                                prefix: prefix,
+                                titleStyle: TextStyle(
+                              color: titleColor,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold
+                            ));
                           }
+                        }
+                        else{
+                          await auth.FirebaseAuth.instance.currentUser?.reload();
+                          if(AuthenticationApi.isUserVerified){
+                            try{
+                              _provider.switchLoading(true);
+                              _completeCreate();
+                              // _provider.switchLoading(false);
+                            } on FirebaseException catch(e){
+                              _provider.switchLoading(false);
+                              String errorMSG;
+                              String title;
+                              Color titleColor;
+                              Widget prefix;
+                              if(e.toString().contains('//hint//')){
+                                title = 'Warning';
+                                prefix = Lottie.asset('assets/lottie/warning.json');
+                                titleColor = Colors.yellow;
+                                errorMSG=e.toString().substring(9);
+                              }else{
+                                prefix = Lottie.asset('assets/lottie/error.json');
+                                titleColor=Colors.red;
+                                title = 'Error';
+                                errorMSG=e.toString();
+                              };
+                              _provider.switchLoading(false);
+                              _controller.showMSG(
+                                  errorMSG,
+                                  duration: const Duration(seconds: 2),
+                                  title: title,
+                                  prefix: prefix,
+                                  titleStyle: TextStyle(
+                                      color: titleColor,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold
+                                  ));
+                            }catch (e){
+                              _provider.switchLoading(false);
+                              String errorMSG;
+                              String title;
+                              Color titleColor;
+                              Widget prefix;
+                              if(e.toString().contains('//hint//')){
+                                title = 'Warning';
+                                prefix = Lottie.asset('assets/lottie/warning.json');
+                                titleColor = Colors.yellow;
+                                errorMSG=e.toString().substring(9);
+                              }else{
+                                prefix = Lottie.asset('assets/lottie/error.json');
+                                titleColor=Colors.red;
+                                title = 'Error';
+                                errorMSG=e.toString();
+                              };
+
+                              _provider.switchLoading(false);
+                              _controller.showMSG(
+                                  errorMSG,
+                                  duration: const Duration(seconds: 2),
+                                  title: title,
+                                  prefix: prefix,
+                                  titleStyle: TextStyle(
+                                      color: titleColor,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold
+                                  ));
+                            }
+                          }
+
                         }
                       },
                       child: _next

@@ -61,6 +61,9 @@ class _HomePageState extends State<HomePage>
       case 3:
         _pageController.animateToPage(3,
             duration: Duration(milliseconds: 400), curve: Curves.easeIn);
+        break;
+      case 4:
+        _pageController.animateToPage(4, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut );
     }
   }
 
@@ -143,12 +146,12 @@ class _HomePageState extends State<HomePage>
         },
         controller: _pageController,
         // physics: const NeverScrollableScrollPhysics(),
-        children: const [
-          OfferPage(),
-          AddEditOffer(),
-          SubscribePage(),
-          QrCode(),
-          ScanQRCode(),
+        children:  [
+         const OfferPage(),
+         const  AddEditOffer(),
+          SubscribePage(controller:_pageController),
+         const QrCode(),
+         const ScanQRCode(),
         ],
       ),
     );

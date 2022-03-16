@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:friends/models/setting_model.dart';
+import 'package:friends/models/theme.dart';
 import 'package:friends/models/user.dart';
 import 'package:friends/server/authentication.dart';
 
@@ -8,6 +8,7 @@ class SettingProvider with ChangeNotifier {
   final BuildContext context;
   late Setting setting = Setting(context);
   User? user;
+  Locale? locale;
 
   SettingProvider(this.context) {
     tryToLoadUser();
@@ -15,7 +16,16 @@ class SettingProvider with ChangeNotifier {
 
   void changeUser(User user1) {
     user = user1;
-    print(user?.id);
+    notifyListeners();
+  }
+  void changeTheme(AppTheme theme){
+
+    setting.theme=theme;
+    notifyListeners();
+  }
+
+  void changeLanguage(String tag){
+    locale = Locale(tag);
     notifyListeners();
   }
 

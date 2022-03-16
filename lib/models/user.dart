@@ -27,14 +27,14 @@ class User {
         imageUrl: data['imageUrl']);
   }
 
-  Map<String, dynamic> toJSON() {
+  Map<String, String> toJSON() {
     return {
       'phone_number':phoneNumber,
       'name': name,
       'userType': userType,
-      'imageUrl': imageUrl,
+      'imageUrl': imageUrl.toString(),
       "id": id,
-      'address': address,
+      'address': address.toString(),
       'email': email,
     };
   }

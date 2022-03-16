@@ -86,13 +86,16 @@ class _CustomScaffoldState extends State<CustomScaffold>
                       ? SlideTransition(
                           position: _animation,
                           child: Container(
-                            padding: const EdgeInsets.all(10),
-                            constraints: BoxConstraints(
-                                // minHeight: _responsive.responsiveHeight(
-                                //     forUnInitialDevices: 15),
-                                // minWidth: _responsive.responsiveWidth(
-                                //     forUnInitialDevices: 95),
-                                ),
+                            clipBehavior: Clip.antiAlias,
+                            padding:  EdgeInsets.all(_responsive.responsiveWidth(forUnInitialDevices: 2.5)),
+                            // constraints: BoxConstraints(
+                            //     // minHeight: _responsive.responsiveHeight(
+                            //     //     forUnInitialDevices: 15),
+                            //     // minWidth: _responsive.responsiveWidth(
+                            //     //     forUnInitialDevices: 95),
+                            //     ),
+                            width:widget.controller.width,
+                            height: widget.controller.height,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
                               color: Colors.white,
@@ -101,46 +104,49 @@ class _CustomScaffoldState extends State<CustomScaffold>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    widget.controller.prefixWidget == null
-                                        ? Container()
-                                        : SizedBox(
-                                            width: _responsive.responsiveWidth(
-                                                forUnInitialDevices: 10),
-                                            height: _responsive.responsiveWidth(
-                                                forUnInitialDevices: 10),
-                                            child:
-                                                widget.controller.prefixWidget),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Text(
-                                          widget.controller.message,
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.bold),
+                                SizedBox(
+                                  width:_responsive.responsiveWidth(forUnInitialDevices: 80),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      widget.controller.prefixWidget == null
+                                          ? Container()
+                                          : SizedBox(
+                                              width: _responsive.responsiveWidth(
+                                                  forUnInitialDevices: 10),
+                                              height: _responsive.responsiveWidth(
+                                                  forUnInitialDevices: 10),
+                                              child:
+                                                  widget.controller.prefixWidget),
+                                      SizedBox(
+                                        width:_responsive.responsiveWidth(forUnInitialDevices: 70),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Text(
+                                              widget.controller.message,
+                                              style: widget.controller.titleTextStyle,
+                                            ),
+                                            Text(
+                                              value,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Provider.of<SettingProvider>(
+                                                        context)
+                                                    .setting
+                                                    .theme
+                                                    .appBarColor,
+                                              ),
+                                            )
+                                          ],
                                         ),
-                                        Text(
-                                          value,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Provider.of<SettingProvider>(
-                                                    context)
-                                                .setting
-                                                .theme
-                                                .appBarColor,
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -160,20 +166,23 @@ class CustomScaffoldController with ChangeNotifier {
   String message = 'Error';
   Widget? prefixWidget;
   Duration duration = const Duration(milliseconds: 400);
-  double widthPercentage = 95;
-  double heightPercentage = 15;
+  double? width ;
+  double? height ;
+  TextStyle? titleTextStyle;
 
   void showMSG(
     String msg, {
     String title = 'Error',
     Widget? prefix,
     Duration duration = const Duration(milliseconds: 400),
-    double widthPercentage = 15,
-    double heightPercentage = 95,
+    double? width ,
+    double? height,
+    TextStyle? titleStyle,
   }) {
     message = title;
-    this.widthPercentage = widthPercentage;
-    this.heightPercentage = heightPercentage;
+    this.titleTextStyle = titleStyle;
+    this.width = width;
+    this.height = height;
     prefixWidget = prefix;
     this.duration = duration;
     valueListenable.value = msg;

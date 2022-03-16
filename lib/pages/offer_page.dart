@@ -29,7 +29,7 @@ class _OfferPageState extends State<OfferPage> {
   void _tryToFetchUser() async {
     if (_setting.user == null) {
       print("User result is use ${_setting.user}");
-      User? user = await AuthenticationApi.fetchUserFromHisAccount();
+      User? user = await AuthenticationApi.fetchUserFromHisAccount(_setting.user?.email??"");
       if (user != null) {
         _setting.changeUser(user);
         await AuthenticationApi.writeUserToStorage(user);
@@ -40,6 +40,11 @@ class _OfferPageState extends State<OfferPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _tryToFetchUser();
   }
   @override

@@ -37,8 +37,9 @@ class MyApp extends StatelessWidget {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate
       ],
+      locale: Provider.of<SettingProvider>(context).locale,
       supportedLocales: L10n.all,
-      title: 'Offer app',
+      title: 'Friends',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         backgroundColor: Provider.of<SettingProvider>(context, listen: false)
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
       home: StreamBuilder<auth.User?>(
           stream: AuthenticationApi().gitUserState,
           builder: (context, snapshot) {
-            if (snapshot.data == null|| !AuthenticationApi.isUserVerified) {
+            if (snapshot.data == null|| !(snapshot.data?.emailVerified??false)) {
               return ChangeNotifierProvider(
                   create: (context) => AuthProvider(),
                   child:  LoginPage(unVerified: AuthenticationApi.isUserVerified,));

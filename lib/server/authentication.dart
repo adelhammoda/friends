@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,6 +26,8 @@ class AuthenticationApi {
         .replaceAll(']', '');
   }
 
+  static User? get user => _auth.currentUser;
+
   static Future<userModel.User> createUser(
       {required String deviceId,
       required String userType,
@@ -35,7 +36,7 @@ class AuthenticationApi {
       required String name,
       String? address,
       String? imageUrl}) async {
-    if (userType!=UserType.student.toString()) {
+    if (userType != UserType.student.toString()) {
       DatabaseReference ref = _database.ref('users').push();
       print(ref.key);
       if (ref.key == null) {
@@ -92,6 +93,7 @@ class AuthenticationApi {
 
   static Future<userModel.User?> readUserFromStorage() async {
     Map? userMap = jsonDecode(await _storage.read(key: 'user') ?? "{}");
+    print(userMap);
     if (userMap == null || userMap.isEmpty) {
       return null;
     } else {
@@ -110,11 +112,18 @@ class AuthenticationApi {
           {required String email, required String password}) =>
       _auth
           .createUserWithEmailAndPassword(email: email, password: password)
-          .catchError((e) => throw "cant create your account");
+          .catchError((e) => throw e);
 
-  Future<UserCredential> login(
+  static Future<bool?> emailIsExist(String email) async => await _auth
+      .fetchSignInMethodsForEmail(email)
+      .then((value) => true)
+      .catchError((e) => throw e);
+
+  static Future<UserCredential> login(
           {required String email, required String password}) =>
-      _auth.signInWithEmailAndPassword(email: email, password: password);
+      _auth
+          .signInWithEmailAndPassword(email: email, password: password)
+          .catchError((e) => throw e);
 
   Future<void> signOut() => _auth.signOut();
 
@@ -130,30 +139,37 @@ class AuthenticationApi {
 
   static Future<void> logOut(SettingProvider setting) async {
     setting.user = null;
-    await _storage.deleteAll();
     _auth.signOut();
   }
 
-  static Future<Map?> fetchUser(String deviceID, String email) async {
-    Map? res = await _database
-        .ref('users')
-        .child(decodeDeviceId(deviceID))
-        .get()
-        .then((value) => value.value as Map?);
-    if (res != null) res.addAll({'id': decodeDeviceId(deviceID)});
-    return res ??= await _database
+  static Future<void>? get reloadUser => _auth.currentUser?.reload();
+
+  static Future<Map?> fetchUser(String email) async {
+    Map? res;
+    return await _database
         .ref('users')
         .orderByChild('email')
-        .equalTo(email)
+        .startAt(email.substring(0,email.lastIndexOf('.')))
         .once()
         .then((value) {
+          print(email);
+          print(value.snapshot.value);
       if (value.snapshot.value == null) {
         return null;
       }
       (value.snapshot.value as Map).forEach((key, value) {
-        if (value['email'] == email) {
-          res = {'email': email, 'name': value['name'], 'id': key};
+        if (email.contains(value['email'])  && (res?.isEmpty ?? true)) {
+          res = {
+            'email': email,
+            'name': value['name'],
+            'id': key,
+              'imageUrl':value['imageUrl'],
+            'phone_number':value['phone_number'],
+            'userType':value['userType'],
+            };
           return;
+        } else if (value['email'] == email && (res?.isNotEmpty ?? false)) {
+          throw "This user account have some problem. please contact  use to fix you problem";
         }
       });
       return res;
@@ -161,10 +177,7 @@ class AuthenticationApi {
   }
 
   static Future<bool> deleteUser(SettingProvider setting) async {
-    if (setting.user?.userType == UserType.manager.toString() ||
-        setting.user?.userType == UserType.student.toString()) {
-      String? deviceId = await _storage.read(key: 'deviceId');
-      if (deviceId != null) {
+      String? deviceId = setting.user!.id;
         try {
           await logOut(setting).then((_) {
             _database.ref('users').child(deviceId).remove();
@@ -172,45 +185,44 @@ class AuthenticationApi {
           return true;
         } catch (e) {
           debugPrint(e.toString());
-          return false;
+          throw "Can't delete this user at this moment";
         }
-      }
-      return false;
-    } else {
-      String? id = await _storage.read(key: 'id');
-      if (id != null) {
-        try {
-          await logOut(setting).then((_) {
-            _database.ref('users').child(id).remove();
-          });
-          return true;
-        } catch (_) {
-          return false;
-        }
+  }
+
+  static Future<void> deleteAccount(
+      String email, SettingProvider setting) async {
+    try {
+      userModel.User? user;
+      if(setting.user == null)
+       user = await fetchUserFromHisAccount(email);
+      else
+        user = setting.user;
+      if (user == null) {
+        throw 'Cant delete this user... an error occurred';
       } else {
-        return false;
+        await deleteUser(setting);
+        await _auth.currentUser?.delete();
+        return;
       }
+    } on FirebaseException catch (e) {
+      throw e.message ?? "Error in happened will connection to server";
+    } catch (e) {
+      throw e;
     }
   }
 
-  static Future<bool> deleteAccount(String email) async {
-    return await _auth.currentUser
-            ?.delete()
-            .then((value) => true)
-            .catchError((e) => throw 'error') ??
-        false;
-  }
-
-  static Future<userModel.User?> fetchUserFromHisAccount() async {
-    User? user = _auth.currentUser;
-    userModel.User? fetchingUser;
+  static Future<userModel.User?> fetchUserFromHisAccount(String email) async {
     String? deviceId = await DeviceInfo.getDeviceID();
-    if (user != null && user.email != null && deviceId != null) {
-      await fetchUser(decodeDeviceId(deviceId), user.email!).then((value) {
-        if (value != null) fetchingUser = userModel.User.fromJSON(value);
-      });
-      return fetchingUser;
+    userModel.User? fetchingUser;
+    try {
+      if (email != '' && deviceId != null) {
+        await fetchUser(email).then((value) {
+          if (value != null) fetchingUser = userModel.User.fromJSON(value);
+        });
+        return fetchingUser;
+      }
+    } catch (e) {
+      return null;
     }
     return null;
-  }
-}
+  }}

@@ -70,13 +70,13 @@ class DataBaseApi {
       List<String> res=[];
       for(File file in images){
         res.add(await _dataBaseStorage.ref('offers').child(offerName).child(DateTime.now().toIso8601String()).putData(await file.readAsBytes()).then((p0)async {
-          print(await p0.ref.getDownloadURL());
+          // print(await p0.ref.getDownloadURL());
           return await p0.ref.getDownloadURL();
         }));
       }
       return res;
     } on Exception catch (e) {
-      print(e);
+      // print(e);
       throw e;
     }
 
@@ -85,21 +85,21 @@ class DataBaseApi {
   static Future<List<Offer>?> getAllOffer() async {
     List<Offer> res = [];
     return await _database.ref('offers').get().then((value) {
-      print('value.value is ${value.value}');
-      print(value.value != null);
+      // print('value.value is ${value.value}');
+      // print(value.value != null);
       if (value.value != null) {
-        print("i am befor if and res is ${(value.value as Map).values.first['images']}");
+        // print("i am befor if and res is ${(value.value as Map).values.first['images']}");
         (value.value as Map).forEach((key, value) {
           Map data=value;
           data.addAll({'id':key});
           res.add(Offer.fromJSON(data));
         });
-        print("i am in if and res is $res");
+        // print("i am in if and res is $res");
       }
-      print(res);
+      // print(res);
       return  res;
     }).catchError((e) {
-      print(e);
+      // print(e);
       throw e;
     });
   }
@@ -110,7 +110,7 @@ class DataBaseApi {
 
   static Future<User?> getUser(String ownerID) async {
     return await _database.ref('users').child(ownerID).once().then((value) {
-      print(value.snapshot.value);
+      // print(value.snapshot.value);
       return value.snapshot.value != null
           ? User(
               email: (value.snapshot.value as Map)['email'],

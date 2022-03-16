@@ -57,5 +57,14 @@ class Go {
     Navigator.of(context).push(_CustomNavigator(child: child,behavior: behavior));
   }
 
+  static toAndReplace(BuildContext context,Widget child,{NavigatorBehavior behavior=NavigatorBehavior.leftToRight}){
+  Navigator.of(context).pushReplacement(_CustomNavigator(child: child,behavior: behavior));
+  }
+
+
+  static pop(BuildContext context){
+    Navigator.of(context).pop();
+  }
+
 
 }

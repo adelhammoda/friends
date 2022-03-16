@@ -37,31 +37,32 @@ dependencies:
   cupertino_icons: ^1.0.2
   #carousel slider for images
   carousel_pro_nullsafety:
-  ##responsive size
+##responsive size
   responsive_s:
-  # state management
+# state management
   provider:
-  ## firebase
+## firebase
   firebase_core:
   firebase_auth:
   firebase_database:
   cloud_firestore:
   firebase_storage:
-  # to send email
+# to send email
   email_auth:
-  #to format date
+#to format date
   intl:
-  #to get device info
+#to get device info
   device_info_plus:
-  #to get external storage
+#to get external storage
   flutter_secure_storage:
-  #for inimation
+#for animation
+  rive:
   lottie:
-  #aussom naviagtion bar
+#aussom navigation bar
   flutter_snake_navigationbar:
-  #to get photo
+#to get photo
   image_picker:
-  #qr packages
+#qr packages
   qr_code_scanner:
   qr_flutter:
   android_sms_retriever:
